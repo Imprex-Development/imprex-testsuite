@@ -70,6 +70,7 @@ public class CommandCreate {
 		String version = context.getArgument("version", String.class);
 		if (!this.versionCache.getVersionList(serverType).contains(version)) {
 			Chat.send(context, builder -> builder.append("Invalid version"));
+			return Command.SINGLE_SUCCESS;
 		}
 
 		Chat.send(context, builder -> builder.append("Creating server " + (template != null ? "template " + template.getName() : name) + "..."));

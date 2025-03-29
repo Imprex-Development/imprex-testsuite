@@ -72,7 +72,7 @@ public class ServerManager implements Runnable {
 		this.pteroClient.retrieveServers().all().executeAsync((serverList) -> {
 			try {
 				for (ClientServer server : serverList) {
-					if (!ServerType.isValid(server.getEgg().getName())) {
+					if (!ServerType.isValid(server.getEgg().getName()) && !server.getName().equalsIgnoreCase("lobby")) {
 						continue;
 					}
 					
