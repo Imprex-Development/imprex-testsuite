@@ -11,8 +11,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import com.mattmalec.pterodactyl4j.DataType;
 import com.mattmalec.pterodactyl4j.EnvironmentValue;
@@ -29,14 +27,15 @@ import dev.imprex.testsuite.TestsuitePlugin;
 import dev.imprex.testsuite.config.ServerConfig;
 import dev.imprex.testsuite.server.meta.ServerType;
 import dev.imprex.testsuite.template.ServerTemplate;
+import dev.imprex.testsuite.util.MinecraftVersion;
 import dev.imprex.testsuite.util.PteroServerStatus;
 
 public class ServerManager implements Runnable {
 
 	private static final long UPDATE_TIME = TimeUnit.SECONDS.toMillis(30);
 
-//	private static final Pattern PTERO_JAVA_IMAGES = Pattern.compile("[^|]+\\|(?<url>[^:]+:java_(?<version>\\d+))");
-	private static final Pattern MINECRAFT_VERSION = Pattern.compile("(?<major>\\d+)\\.(?<minor>\\d+)(?:\\.(?<patch>\\d+))?");
+	private static final MinecraftVersion VERSION_1_17 = new MinecraftVersion("1.17");
+	private static final MinecraftVersion VERSION_1_20_4 = new MinecraftVersion("1.20.4");
 
 	private final TestsuitePlugin plugin;
 	private final PteroApplication pteroApplication;
@@ -73,7 +72,7 @@ public class ServerManager implements Runnable {
 		this.pteroClient.retrieveServers().all().executeAsync((serverList) -> {
 			try {
 				for (ClientServer server : serverList) {
-					if (!ServerType.isValid(server.getEgg().getName())) {
+					if (!ServerType.isValid(server.getEgg().getName()) && !server.getName().equalsIgnoreCase("lobby")) {
 						continue;
 					}
 					
@@ -214,39 +213,23 @@ public class ServerManager implements Runnable {
 
 			Map<String, EnvironmentValue<?>> environment = new HashMap<>();
 			environment.put("MINECRAFT_VERSION", EnvironmentValue.of(version));
+			environment.put("DL_VERSION", EnvironmentValue.of(version));
 
-			Matcher versionMatcher = MINECRAFT_VERSION.matcher(version);
-			if (!versionMatcher.find()) {
+			MinecraftVersion minecraftVersion;
+			try {
+				minecraftVersion = new MinecraftVersion(version);
+			} catch (Exception e) {
 				future.completeExceptionally(new IllegalArgumentException("Minecraft version dosn't match pattern: <major>.<minor>.<patch>"));
 				return;
 			}
 
-			int minorVersion = Integer.parseInt(versionMatcher.group("minor"));
-			int requestedJavaVersion = minorVersion < 17 ? 11 : 17;
-
 			String dockerImage = null;
-			if (requestedJavaVersion == 11) {
+			if (minecraftVersion.isBelow(VERSION_1_17)) {
 				dockerImage = "ghcr.io/pterodactyl/yolks:java_11";
+			} else if (minecraftVersion.isAtOrBelow(VERSION_1_20_4)) {
+				dockerImage = "ghcr.io/pterodactyl/yolks:java_17";
 			} else {
-				dockerImage = egg.getDockerImage();
-			}
-//			Matcher dockerMatcher = PTERO_JAVA_IMAGES.matcher(egg.getDockerImage());
-//			while (dockerMatcher.find()) {
-//				String url = dockerMatcher.group("url");
-//				if (dockerImage == null) {
-//					dockerImage = url;
-//				}
-//
-//				int dockerVersion = Integer.parseInt(dockerMatcher.group("version"));
-//				if (dockerVersion == requestedJavaVersion) {
-//					dockerImage = url;
-//					break;
-//				}
-//			}
-
-			if (dockerImage == null) {
-				future.completeExceptionally(new IllegalArgumentException("Unable to parse or find docker images."));
-				return;
+				dockerImage = "ghcr.io/pterodactyl/yolks:java_21";
 			}
 
 			this.pteroApplication.createServer()

@@ -49,6 +49,10 @@ public class ServerVersionCache implements Runnable {
 		}
 
 		for (ServerType serverType : ServerType.values()) {
+			if (serverType.getVersionListUrl() == null) {
+				return;
+			}
+			
 			try {
 				Set<String> versionSet = ServerVersion.fetchVersionList(serverType);
 				if (versionSet == null) {

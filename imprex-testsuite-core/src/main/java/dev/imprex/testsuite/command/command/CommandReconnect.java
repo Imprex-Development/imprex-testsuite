@@ -3,6 +3,10 @@ package dev.imprex.testsuite.command.command;
 import static dev.imprex.testsuite.command.ArgumentBuilder.argument;
 import static dev.imprex.testsuite.command.ArgumentBuilder.literal;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
+
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -145,7 +149,9 @@ public class CommandReconnect {
 				if (lobby == null) {
 					Chat.builder().append("Successful reconnected.").send(player);
 				} else {
-					this.reconnectPlayer(player, null, current);
+					Chat.builder().append("Reconnecting in one second...").send(player);
+					Executor executor = CompletableFuture.delayedExecutor(1, TimeUnit.SECONDS);
+					CompletableFuture.completedFuture(null).thenRunAsync(() -> this.reconnectPlayer(player, null, current), executor);
 				}
 			}
 			case ALREADY_CONNECTED -> Chat.builder().append("Your already connected").send(player);

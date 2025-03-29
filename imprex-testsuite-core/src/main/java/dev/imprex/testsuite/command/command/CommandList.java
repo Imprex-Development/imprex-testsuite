@@ -92,14 +92,19 @@ public class CommandList {
 						.append(Component.text(server.getPlayers().size())
 								.color(Chat.Color.LIGHT_GREEN)
 								.hoverEvent(HoverEvent.showText(Component.text("Player count")
-										.color(Chat.Color.LIGHT_GREEN))))
+										.color(Chat.Color.LIGHT_GREEN))));
+				
+				if (server.isIdleTimeout()) {
+					playerCount = playerCount
 						.append(Component.text(" | "))
 						.append(Component.text(milliToSeconds(server.getInactiveTime()) + "s")
 								.color(Chat.Color.DARK_GREEN)
 								.hoverEvent(HoverEvent.showText(Component.text("Inactive time")
-										.color(Chat.Color.DARK_GREEN))))
-						.append(Component.text(")")
-								.color(Chat.Color.GRAY));
+										.color(Chat.Color.DARK_GREEN))));
+				}
+				
+				playerCount = playerCount.append(Component.text(")")
+						.color(Chat.Color.GRAY));
 
 				Component connectServer = Component.text("Connect")
 						.color(Chat.Color.DARK_GREEN)

@@ -1,7 +1,9 @@
 package dev.imprex.testsuite.server;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
@@ -49,7 +51,7 @@ public class ServerInstance implements TestsuiteServer, Runnable {
 	private AtomicReference<PteroServerStatus> serverStatus = new AtomicReference<>(PteroServerStatus.UNKNOWN);
 
 	private AtomicLong inactiveTime = new AtomicLong(System.currentTimeMillis());
-	private AtomicBoolean idleTimeout = new AtomicBoolean(true);
+	private AtomicBoolean idleTimeout = new AtomicBoolean(false);
 
 	public ServerInstance(ServerManager manager, ClientServer server) {
 		this.manager = manager;
@@ -124,11 +126,8 @@ public class ServerInstance implements TestsuiteServer, Runnable {
 			if (status == UtilizationState.RUNNING) {
 				this.override(true).whenComplete((changes, error) -> {
 					if (error != null) {
-						if (error instanceof OverrideException) {
-							TestsuiteLogger.info("Unable to execute override file for server {0} because {1}", this.getName(), error.getMessage());
-						} else {
-							error.printStackTrace();
-						}
+						error.printStackTrace();
+						TestsuiteLogger.info("Unable to execute override file for server {0} because {1}", this.getName(), error.getMessage());
 					} else if (changes != 0) {
 						this.notifyMessage("override has changed {0} values", changes);
 					}
@@ -185,27 +184,32 @@ public class ServerInstance implements TestsuiteServer, Runnable {
 		}
 
 		return this.deletePluginJars()
-				.thenCompose(__ -> this.uploadServerFiles());
+				.thenAccept(__ -> this.uploadServerFiles());
 	}
 	
 	private CompletableFuture<Void> deletePluginJars() {
 		return PteroUtil.execute(this.server.retrieveDirectory())
-				.thenApply(directory -> directory.getDirectoryByName("plugins"))
-				.thenCompose(optional -> {
+				.thenCompose(directory -> {
+					Optional<Directory> optional = directory.getDirectoryByName("plugins");
 					if (optional.isEmpty()) {
 						return CompletableFuture.completedFuture(null);
 					}
 					
-					Directory directory = optional.get();
-					CompletableFuture<Void> future = new CompletableFuture<Void>();
+					return PteroUtil.execute(directory.into(optional.get()));
+				})
+				.thenCompose(directory -> {
+					if (directory == null) {
+						return CompletableFuture.completedFuture(null);
+					}
 					
+					List<CompletableFuture<Void>> deleteRequest = new ArrayList<CompletableFuture<Void>>();
 					for (GenericFile file : directory.getFiles()) {
 						if (file.getName().endsWith(".jar")) {
-							future = future.thenAccept(__ -> PteroUtil.execute(file.delete()));
+							deleteRequest.add(PteroUtil.execute(file.delete()));
 						}
 					}
 					
-					return future;
+					return CompletableFuture.allOf(deleteRequest.toArray(CompletableFuture[]::new));
 				});
 	}
 	
@@ -223,6 +227,8 @@ public class ServerInstance implements TestsuiteServer, Runnable {
 	}
 
 	public CompletableFuture<Void> start() {
+		this.setIdleTimeout(true);
+		
 //		this.subscribe(); // is already called in override
 		return this.override(false).whenComplete((changes, error) -> {
 			if (error != null) {
@@ -239,6 +245,8 @@ public class ServerInstance implements TestsuiteServer, Runnable {
 	}
 
 	public CompletableFuture<Void> restart() {
+		this.setIdleTimeout(true);
+
 		this.subscribe();
 		return PteroUtil.execute(this.server.restart());
 	}
@@ -282,6 +290,10 @@ public class ServerInstance implements TestsuiteServer, Runnable {
 	public boolean toggleIdleTimeout() {
 		boolean state = this.idleTimeout.get();
 		return this.idleTimeout.compareAndSet(state, !state) ? !state : state;
+	}
+	
+	public boolean isIdleTimeout() {
+		return this.idleTimeout.get();
 	}
 
 	public void notifyMessage(String message, Object... arguments) {

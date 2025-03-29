@@ -57,10 +57,12 @@ public class AllocationAssignment {
 					}
 
 					this.createAllocation(node, portRange)
-						.thenCompose(__ -> PteroUtil.execute(node.retrieveAllocations().all()))
+						.thenCompose(__ -> this.receiveNode())
+						.thenCompose(node2 -> PteroUtil.execute(node2.retrieveAllocations().all()))
 						.thenApply(allocations -> this.selectAllocation(new PortRange(this.minPort, this.maxPort), allocations))
 						.whenComplete((allocation2, error3) -> {
 							if (error3 != null) {
+								error3.printStackTrace();
 								future.completeExceptionally(error3);
 							} else {
 								future.complete(allocation2);

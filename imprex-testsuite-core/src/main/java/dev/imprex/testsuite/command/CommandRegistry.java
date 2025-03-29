@@ -23,7 +23,9 @@ import dev.imprex.testsuite.command.command.CommandReinstall;
 import dev.imprex.testsuite.command.command.CommandRestart;
 import dev.imprex.testsuite.command.command.CommandSetup;
 import dev.imprex.testsuite.command.command.CommandStart;
+import dev.imprex.testsuite.command.command.CommandStartSetup;
 import dev.imprex.testsuite.command.command.CommandStop;
+import dev.imprex.testsuite.command.command.CommandTyl;
 
 public class CommandRegistry {
 
@@ -49,7 +51,12 @@ public class CommandRegistry {
 		this.register(command(new CommandSetup(plugin).create()));
 		this.register(command(new CommandStart(plugin).create())
 				.asRoot());
+		this.register(command(new CommandStartSetup(plugin).create())
+				.alias("ss")
+				.asRoot());
 		this.register(command(new CommandStop(plugin).create())
+				.asRoot());
+		this.register(command(new CommandTyl(plugin).create())
 				.asRoot());
 	}
 

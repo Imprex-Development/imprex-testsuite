@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -38,7 +39,12 @@ public class ServerVersion {
 
 	public static Set<String> fetchVersionList(ServerType type) {
 		try {
-			URL url = new URL(type.getVersionListUrl());
+			String urlString = type.getVersionListUrl();
+			if (urlString == null) {
+				return Collections.emptySet();
+			}
+
+			URL url = new URL(urlString);
 			HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 			try (InputStreamReader inputStreamReader = new InputStreamReader(connection.getInputStream())) {
 				Set<String> versionSet;
