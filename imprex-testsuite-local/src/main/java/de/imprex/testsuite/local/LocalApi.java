@@ -60,8 +60,13 @@ public class LocalApi implements TestsuiteApi {
 	public void registerServerList(TestsuiteServer server) {
 		String identifier = server.getIdentifier();
 		String name = server.getName().toLowerCase();
-		String ip = server.getAddress();
-		int port = server.getPort();
+		String ip = server.getAddress().orElse(null);
+		Integer port = server.getPort().orElse(null);
+		
+		// no allocation
+		if (ip == null || port == null) {
+			return;
+		}
 
 		this.serverCache.computeIfAbsent(name, value -> new LocalServer(identifier, name, ip, port));
 	}

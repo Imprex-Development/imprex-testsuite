@@ -14,12 +14,12 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import com.mattmalec.pterodactyl4j.UtilizationState;
+import com.mattmalec.pterodactyl4j.client.entities.ClientAllocation;
 import com.mattmalec.pterodactyl4j.client.entities.ClientServer;
 import com.mattmalec.pterodactyl4j.client.entities.Directory;
 import com.mattmalec.pterodactyl4j.client.entities.GenericFile;
 import com.mattmalec.pterodactyl4j.client.entities.Utilization;
 import com.mattmalec.pterodactyl4j.client.managers.WebSocketManager;
-import com.mattmalec.pterodactyl4j.entities.Allocation;
 
 import dev.imprex.testsuite.TestsuiteLogger;
 import dev.imprex.testsuite.TestsuitePlugin;
@@ -348,15 +348,15 @@ public class ServerInstance implements TestsuiteServer, Runnable {
 	}
 
 	@Override
-	public String getAddress() {
-		Allocation allocation = this.server.getPrimaryAllocation();
-		return allocation.getIP();
+	public Optional<String> getAddress() {
+		Optional<ClientAllocation> allocation = this.server.getPrimaryAllocation();
+		return allocation.map(ClientAllocation::getIP);
 	}
 
 	@Override
-	public int getPort() {
-		Allocation allocation = this.server.getPrimaryAllocation();
-		return allocation.getPortInt();
+	public Optional<Integer> getPort() {
+		Optional<ClientAllocation> allocation = this.server.getPrimaryAllocation();
+		return allocation.map(ClientAllocation::getPortInt);
 	}
 
 	public ClientServer getClientServer() {

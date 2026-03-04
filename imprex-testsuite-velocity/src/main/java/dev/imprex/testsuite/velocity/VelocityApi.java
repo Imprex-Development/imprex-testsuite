@@ -63,8 +63,13 @@ public class VelocityApi implements TestsuiteApi {
 	@Override
 	public void registerServerList(TestsuiteServer server) {
 		String name = server.getName().toLowerCase();
-		String ip = server.getAddress();
-		int port = server.getPort();
+		String ip = server.getAddress().orElse(null);
+		Integer port = server.getPort().orElse(null);
+		
+		// no allocation
+		if (ip == null || port == null) {
+			return;
+		}
 
 		Optional<RegisteredServer> serverOptional = this.proxy.getServer(name);
 		if (serverOptional.isPresent()) {

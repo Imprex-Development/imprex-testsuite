@@ -56,8 +56,13 @@ public class BungeecordApi implements TestsuiteApi {
 	@Override
 	public void registerServerList(TestsuiteServer server) {
 		String name = server.getName().toLowerCase();
-		String ip = server.getAddress();
-		int port = server.getPort();
+		String ip = server.getAddress().orElse(null);
+		Integer port = server.getPort().orElse(null);
+		
+		// no allocation
+		if (ip == null || port == null) {
+			return;
+		}
 
 		ServerInfo serverInfoOptional = this.proxy.getServers().get(name);
 		if (serverInfoOptional != null) {
