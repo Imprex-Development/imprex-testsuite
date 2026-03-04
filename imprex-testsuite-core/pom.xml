@@ -68,8 +68,8 @@
 		</dependency>
 		<!-- Pterodactyl -->
 		<dependency>
-			<groupId>com.mattmalec</groupId>
-			<artifactId>Pterodactyl4J</artifactId>
+			<groupId>de.ngloader</groupId>
+			<artifactId>pelican4j</artifactId>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>

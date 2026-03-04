@@ -87,6 +87,11 @@ public class ServerManager implements Runnable {
 
 						instance.notifyMessage("Detected server instance");
 					} else {
+						if (server.isInstalling()) {
+							instance.updateServerStatus(PteroServerStatus.INSTALLING);
+							continue;
+						}
+						
 						instance.updateStats(server.retrieveUtilization().execute());
 					}
 
@@ -214,6 +219,8 @@ public class ServerManager implements Runnable {
 			Map<String, EnvironmentValue<?>> environment = new HashMap<>();
 			environment.put("MINECRAFT_VERSION", EnvironmentValue.of(version));
 			environment.put("DL_VERSION", EnvironmentValue.of(version));
+			environment.put("BUILD_NUMBER", EnvironmentValue.of("latest"));
+			environment.put("SERVER_JARFILE", EnvironmentValue.of("server.jar"));
 
 			MinecraftVersion minecraftVersion;
 			try {
@@ -272,7 +279,7 @@ public class ServerManager implements Runnable {
 		CompletableFuture<ApplicationUser> future = new CompletableFuture<>();
 		this.pteroClient.retrieveAccount().executeAsync(
 			account -> {
-				this.pteroApplication.retrieveUserById(account.getId()).executeAsync(
+				this.pteroApplication.retrieveUserByUuid(account.getUuid()).executeAsync(
 						future::complete,
 						future::completeExceptionally);
 			}, future::completeExceptionally);
