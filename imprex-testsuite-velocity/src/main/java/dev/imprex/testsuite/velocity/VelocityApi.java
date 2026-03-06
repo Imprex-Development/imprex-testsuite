@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import com.velocitypowered.api.proxy.Player;
@@ -37,6 +38,11 @@ public class VelocityApi implements TestsuiteApi {
 	@Override
 	public TestsuitePlayer getPlayer(String name) {
 		return VelocityPlayer.get(name);
+	}
+	
+	@Override
+	public TestsuitePlayer getPlayer(UUID uuid) {
+		return VelocityPlayer.get(uuid);
 	}
 
 	@Override

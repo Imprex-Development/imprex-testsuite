@@ -2,9 +2,13 @@ package dev.imprex.testsuite.server;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -30,10 +34,14 @@ import dev.imprex.testsuite.override.OverrideException;
 import dev.imprex.testsuite.template.ServerTemplate;
 import dev.imprex.testsuite.template.ServerTemplateList;
 import dev.imprex.testsuite.util.Chat;
+import dev.imprex.testsuite.util.ChatMessageBuilder;
 import dev.imprex.testsuite.util.EmptyUtilization;
+import dev.imprex.testsuite.util.FancyComponent;
 import dev.imprex.testsuite.util.PteroServerStatus;
 import dev.imprex.testsuite.util.PteroUtil;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
 
 public class ServerInstance implements TestsuiteServer, Runnable {
 
@@ -52,6 +60,8 @@ public class ServerInstance implements TestsuiteServer, Runnable {
 
 	private AtomicLong inactiveTime = new AtomicLong(System.currentTimeMillis());
 	private AtomicBoolean idleTimeout = new AtomicBoolean(false);
+	
+	private Set<UUID> joinAfterStart = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
 	public ServerInstance(ServerManager manager, ClientServer server) {
 		this.manager = manager;
@@ -106,7 +116,10 @@ public class ServerInstance implements TestsuiteServer, Runnable {
 
 	void updateServerStatus(PteroServerStatus serverStatus) {
 		if (this.serverStatus.getAndSet(serverStatus) != serverStatus) {
-			this.notifyMessage("Status: {0}", serverStatus.name());
+			Chat.builder(this)
+				.append(Component.text("Status: ").color(Chat.Color.GRAY))
+				.append(FancyComponent.beautifyServerStatus(serverStatus))
+				.broadcast();
 
 			if (serverStatus == PteroServerStatus.INSTALLING) {
 				this.subscribe();
@@ -121,7 +134,21 @@ public class ServerInstance implements TestsuiteServer, Runnable {
 
 	void updateStatus(UtilizationState status) {
 		if (this.status.getAndSet(status) != status) {
-			this.notifyMessage("Status: {0}", status.name());
+			ChatMessageBuilder<?> message = Chat.builder(this)
+				.append(Component.text("Status: ").color(Chat.Color.GRAY))
+				.append(FancyComponent.beautifyUtilizationState(status));
+			
+			if (status == UtilizationState.RUNNING) {
+				message.append(Component.text(" "));
+				message.append(Component.empty()
+						.append(Component.text("[").color(Chat.Color.GRAY))
+						.append(Component.text("Join")
+								.clickEvent(ClickEvent.runCommand("tc " + this.getName()))
+								.hoverEvent(HoverEvent.showText(Component.text("Join server").color(Chat.Color.LIGHT_GREEN)))
+								.color(Chat.Color.LIGHT_GREEN))
+						.append(Component.text("]").color(Chat.Color.GRAY)));
+			}
+			message.broadcast();
 
 			if (status == UtilizationState.RUNNING) {
 				this.override(true).whenComplete((changes, error) -> {
@@ -132,6 +159,13 @@ public class ServerInstance implements TestsuiteServer, Runnable {
 						this.notifyMessage("override has changed {0} values", changes);
 					}
 				});
+				
+				if (!this.joinAfterStart.isEmpty()) {
+					this.joinAfterStart.stream()
+						.map(this.manager.getPlugin()::getPlayer)
+						.forEach(this::sendToServer);
+					this.joinAfterStart.clear();
+				}
 			}
 
 			if (status == UtilizationState.OFFLINE) {
@@ -141,6 +175,27 @@ public class ServerInstance implements TestsuiteServer, Runnable {
 				this.subscribe();
 			}
 		}
+	}
+
+	public void sendToServer(TestsuitePlayer player) {
+		player.connect(this).whenComplete((result, error) -> {
+			if (error != null) {
+				error.printStackTrace();
+
+				Chat.builder().append("Unable to connect too server! " + error.getMessage()).send(player);
+				return;
+			}
+
+			switch (result) {
+			case SUCCESS -> {
+				Chat.builder().append("Successful connected to server {0}.", this.getName()).send(player);
+			}
+			case ALREADY_CONNECTED -> Chat.builder().append("Your already connected").send(player);
+			case CONNECTION_CANCELLED -> Chat.builder().append("Connection was cancelled").send(player);
+			case CONNECTION_IN_PROGRESS -> Chat.builder().append("Connection is in progress").send(player);
+			case SERVER_DISCONNECTED -> Chat.builder().append("Server disconnected").send(player);
+			}
+		});
 	}
 
 	public void subscribe() {
@@ -241,13 +296,22 @@ public class ServerInstance implements TestsuiteServer, Runnable {
 			} else if (changes != 0) {
 				this.notifyMessage("Override has changed {0} variables", changes);
 			}
-		}).thenCompose(__ -> PteroUtil.execute(this.server.start()));
+		}).thenCompose(__ -> {
+			this.subscribe();
+			return PteroUtil.execute(this.server.start());
+		});
 	}
 
 	public CompletableFuture<Void> restart() {
 		this.setIdleTimeout(true);
 
 		this.subscribe();
+		
+		this.joinAfterStart.clear();
+		this.getPlayers().stream()
+			.map(player -> player.getUUID())
+			.forEach(this.joinAfterStart::add);
+		
 		return PteroUtil.execute(this.server.restart());
 	}
 
@@ -276,7 +340,7 @@ public class ServerInstance implements TestsuiteServer, Runnable {
 	}
 
 	public CompletableFuture<Void> delete() {
-		return this.manager.deleteInstance(this.getIdentifier());
+		return this.manager.deleteInstance(this.getClientServer().getInternalId());
 	}
 
 	public void resetInactiveTime() {

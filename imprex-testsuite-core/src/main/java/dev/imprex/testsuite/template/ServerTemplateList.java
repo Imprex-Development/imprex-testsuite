@@ -33,12 +33,12 @@ public class ServerTemplateList implements Runnable {
 				}
 
 				String name = path.getFileName().toString().toLowerCase();
-				if (this.templates.containsKey(name)) {
+				if (this.templates.containsKey(name.toLowerCase())) {
 					return;
 				}
 
 				ServerTemplate template = new ServerTemplate(this, path);
-				this.templates.put(name, template);
+				this.templates.put(name.toLowerCase(), template);
 
 				TestsuiteLogger.info("Detected new template \"{0}\"", template.getName());
 			});

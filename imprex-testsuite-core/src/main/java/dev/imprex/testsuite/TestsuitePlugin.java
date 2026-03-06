@@ -2,6 +2,7 @@ package dev.imprex.testsuite;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
@@ -95,6 +96,11 @@ public class TestsuitePlugin implements TestsuiteApi {
 	@Override
 	public TestsuitePlayer getPlayer(String name) {
 		return this.api.getPlayer(name);
+	}
+
+	@Override
+	public TestsuitePlayer getPlayer(UUID uuid) {
+		return this.api.getPlayer(uuid);
 	}
 
 	@Override

@@ -27,6 +27,7 @@ import dev.imprex.testsuite.server.meta.ServerVersionCache;
 import dev.imprex.testsuite.template.ServerTemplate;
 import dev.imprex.testsuite.template.ServerTemplateList;
 import dev.imprex.testsuite.util.Chat;
+import dev.imprex.testsuite.util.MinecraftVersion;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
@@ -66,9 +67,9 @@ public class CommandList {
 				.append(Component.text("[] --- --- { Server List } --- --- []"))
 				.append(Component.newline())
 				.append(Component.newline());
-
+		
 		for (ServerInstance server : this.serverManager.getServers().stream()
-				.sorted((a, b) -> a.getName().compareTo(b.getName()))
+				.sorted(this::sortServerList)
 				.toList()) {
 
 			if (template != null && !template.equals(server.getTemplate())) {
@@ -149,6 +150,41 @@ public class CommandList {
 				.append(Chat.PREFIX)
 				.append(Component.text("[] --- --- { Server List } --- --- []")));
 		return Command.SINGLE_SUCCESS;
+	}
+	
+	public int sortServerList(ServerInstance a, ServerInstance b) {
+		boolean hasA = a.hasTemplate();
+		boolean hasB = b.hasTemplate();
+		
+		if (hasA && !hasB) {
+			return -1;
+		} else if (!hasA && hasB) {
+			return 1;
+		} else if (!hasA && !hasB) {
+			return 0;
+		}
+		
+		String nameA = a.getName();
+		String nameB = b.getName();
+		int indexA = nameA.lastIndexOf("-");
+		int indexB = nameA.lastIndexOf("-");
+
+		String prefixA = nameA.substring(0, indexA);
+		String prefixB = nameB.substring(0, indexB);
+		
+		int prefixCompare = prefixA.compareTo(prefixB);
+		if (prefixCompare != 0) {
+			return prefixCompare;
+		}
+
+		MinecraftVersion versionA = new MinecraftVersion(nameA.substring(indexA + 1));
+		MinecraftVersion versionB = new MinecraftVersion(nameB.substring(indexB + 1));
+		if (versionA.isAbove(versionB)) { // high to low
+			return -1;
+		} else if (versionA.isBelow(versionB)) {
+			return 1;
+		}
+		return 0;
 	}
 
 	public int milliToSeconds(long time) {

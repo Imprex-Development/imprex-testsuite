@@ -4,6 +4,7 @@ import java.net.InetSocketAddress;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import dev.imprex.testsuite.api.TestsuiteApi;
@@ -30,6 +31,11 @@ public class BungeecordApi implements TestsuiteApi {
 	@Override
 	public TestsuitePlayer getPlayer(String name) {
 		return BungeecordPlayer.get(name);
+	}
+
+	@Override
+	public TestsuitePlayer getPlayer(UUID uuid) {
+		return BungeecordPlayer.get(uuid);
 	}
 
 	@Override

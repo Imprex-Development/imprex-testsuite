@@ -34,8 +34,9 @@ public class ServerManager implements Runnable {
 
 	private static final long UPDATE_TIME = TimeUnit.SECONDS.toMillis(30);
 
-	private static final MinecraftVersion VERSION_1_17 = new MinecraftVersion("1.17");
-	private static final MinecraftVersion VERSION_1_20_4 = new MinecraftVersion("1.20.4");
+	private static final MinecraftVersion VERSION_1_21 = new MinecraftVersion("1.21");
+	private static final MinecraftVersion VERSION_1_17_1 = new MinecraftVersion("1.17.1");
+	private static final MinecraftVersion VERSION_26_1 = new MinecraftVersion("26.1");
 
 	private final TestsuitePlugin plugin;
 	private final PteroApplication pteroApplication;
@@ -229,26 +230,35 @@ public class ServerManager implements Runnable {
 			}
 
 			String dockerImage = null;
-			if (minecraftVersion.isBelow(VERSION_1_17)) {
-				dockerImage = "ghcr.io/pterodactyl/yolks:java_11";
-			} else if (minecraftVersion.isAtOrBelow(VERSION_1_20_4)) {
-				dockerImage = "ghcr.io/pterodactyl/yolks:java_17";
+			if (minecraftVersion.isAtOrAbove(VERSION_26_1)) {
+				dockerImage = "ghcr.io/pelican-eggs/yolks:java_25";
+			} else if (minecraftVersion.isAtOrAbove(VERSION_1_21)) {
+				dockerImage = "ghcr.io/pelican-eggs/yolks:java_21";
+			} else if (minecraftVersion.isAtOrAbove(VERSION_1_17_1)) {
+				dockerImage = "ghcr.io/pelican-eggs/yolks:java_17";
 			} else {
-				dockerImage = "ghcr.io/pterodactyl/yolks:java_21";
+				dockerImage = "ghcr.io/pelican-eggs/yolks:java_8";
 			}
 
-			this.pteroApplication.createServer()
+			var createRequest = this.pteroApplication.createServer()
 				.setName(name)
 				.setDescription(description)
 				.setOwner(user)
 				.setEgg(egg)
 				.setAllocation(allocation)
 				.setEnvironment(environment)
-				.setDisk(serverConfig.storage(), DataType.GB)
-				.setMemory(serverConfig.memory(), DataType.GB)
 				.setDockerImage(dockerImage)
-				.startOnCompletion(false)
-				.executeAsync((server) -> {
+				.startOnCompletion(false);
+
+			if (serverConfig.storage() > 0) {
+				createRequest.setDisk(serverConfig.storage(), DataType.GB);
+			}
+			
+			if (serverConfig.memory() > 0) {
+				createRequest.setMemory(serverConfig.memory(), DataType.GB);
+			}
+			
+			createRequest.executeAsync((server) -> {
 					this.serverInstallation.add(server.getIdentifier());
 					this.lastUpdate.getAndSet(0);
 					future.complete(server);

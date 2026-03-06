@@ -43,6 +43,14 @@ public class LocalApi implements TestsuiteApi {
 	public TestsuitePlayer getPlayer(String name) {
 		return this.playerCache.computeIfAbsent(name, value -> new LocalPlayer(UUID.randomUUID(), name));
 	}
+	
+	@Override
+	public TestsuitePlayer getPlayer(UUID uuid) {
+		return this.playerCache.values().stream()
+			.filter(player -> player.getUUID() == uuid)
+			.findFirst()
+			.orElse(null);
+	}
 
 	@Override
 	public List<TestsuitePlayer> getPlayers() {

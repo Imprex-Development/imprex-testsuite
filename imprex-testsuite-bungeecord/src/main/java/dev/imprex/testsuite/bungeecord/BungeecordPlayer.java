@@ -36,6 +36,13 @@ public class BungeecordPlayer implements TestsuitePlayer {
 		return BungeecordPlayer.CACHE.get(name.toLowerCase());
 	}
 
+	public static TestsuitePlayer get(UUID uuid) {
+		return BungeecordPlayer.CACHE.values().stream()
+			.filter(player -> player.getUUID() == uuid)
+			.findFirst()
+			.orElse(null);
+	}
+
 	public static TestsuitePlayer get(ProxiedPlayer player) {
 		return BungeecordPlayer.get(player.getName());
 	}
