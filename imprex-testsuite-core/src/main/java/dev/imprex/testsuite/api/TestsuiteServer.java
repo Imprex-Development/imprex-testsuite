@@ -1,6 +1,7 @@
 package dev.imprex.testsuite.api;
 
 import java.util.List;
+import java.util.Optional;
 
 import net.kyori.adventure.text.Component;
 
@@ -10,9 +11,9 @@ public interface TestsuiteServer {
 
 	String getName();
 
-	String getAddress();
+	Optional<String> getAddress();
 
-	int getPort();
+	Optional<Integer> getPort();
 
 	void broadcast(Component component);
 

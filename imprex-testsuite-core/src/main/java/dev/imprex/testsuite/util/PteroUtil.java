@@ -44,7 +44,7 @@ public class PteroUtil {
 		List<CompletableFuture<Void>> futureList = new ArrayList<>();
 		for (Path file : fileList) {
 			String testPath = file.getParent().toString().substring(skipPathPrefix);
-			String tylPath = testPath.startsWith("/") ? testPath.substring(1) : testPath;
+			String tylPath = (testPath.startsWith("/") || testPath.startsWith("\\")) ? testPath.substring(1) : testPath;
 
 			if (!directoryPath.equals(tylPath)) {
 				continue;

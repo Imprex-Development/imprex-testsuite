@@ -77,18 +77,19 @@ public class Chat {
 		public static final TextColor DARK_GRAY = TextColor.color(100, 100, 120);
 		public static final TextColor GRAY = TextColor.color(180, 180, 200);
 		public static final TextColor RED = TextColor.color(200, 40, 40);
+		public static final TextColor ORANGE = TextColor.color(255, 170, 0);
 		public static final TextColor DARK_GREEN = TextColor.color(60, 180, 60);
 		public static final TextColor LIGHT_GREEN = TextColor.color(140, 200, 130);
 		public static final TextColor PURPLE = TextColor.color(200, 40, 200);
 
 		public static TextColor statusColor(ServerInstance server) {
 			return switch (server.getServerStatus()) {
-				case INSTALLING -> TextColor.color(200, 40, 200);
+				case INSTALLING -> PURPLE;
 				default -> switch (server.getStatus()) {
-						case STARTING -> TextColor.color(0, 200, 0);
-						case RUNNING -> TextColor.color(60, 180, 60);
-						case STOPPING -> TextColor.color(200, 40, 40);
-						default -> TextColor.color(100, 100, 100);
+						case STARTING -> LIGHT_GREEN;
+						case RUNNING -> DARK_GREEN;
+						case STOPPING -> ORANGE;
+						default -> RED;
 					};
 				};
 		}

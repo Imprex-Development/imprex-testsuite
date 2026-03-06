@@ -33,6 +33,13 @@ public class VelocityPlayer implements TestsuitePlayer {
 		return VelocityPlayer.CACHE.get(name.toLowerCase());
 	}
 
+	public static TestsuitePlayer get(UUID uuid) {
+		return VelocityPlayer.CACHE.values().stream()
+			.filter(player -> player.getUUID() == uuid)
+			.findFirst()
+			.orElse(null);
+	}
+
 	public static TestsuitePlayer get(Player player) {
 		return VelocityPlayer.get(player.getUsername());
 	}

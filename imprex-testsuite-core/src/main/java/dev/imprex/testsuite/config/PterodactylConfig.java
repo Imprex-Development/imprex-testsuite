@@ -4,7 +4,7 @@ public record PterodactylConfig(String url, String applicationToken, String clie
 
 	public boolean valid() {
 		return url.startsWith("http") &&
-				this.applicationToken.startsWith("ptla_") &&
-				this.clientToken.startsWith("ptlc_");
+				this.applicationToken.startsWith("papp_") &&
+				this.clientToken.startsWith("pacc_");
 	}
 }

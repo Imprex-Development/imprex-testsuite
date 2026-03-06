@@ -41,9 +41,7 @@ public class CommandCreate {
 	public LiteralArgumentBuilder<TestsuiteSender> create() {
 		return literal("create").then(
 				argument("name", StringArgumentType.word())
-				.suggests(this.suggestion.template()
-						.map(ServerTemplate::getName)
-						.buildSuggest("name"))
+				.suggests(this.suggestion.template().buildSuggest("name"))
 				.then(
 						argument("type", StringArgumentType.word())
 						.suggests((future, builder) -> SuggestionProvider.suggest(builder, ServerType.TYPE_NAMES))
@@ -60,6 +58,10 @@ public class CommandCreate {
 		String name = context.getArgument("name", String.class);
 
 		ServerTemplate template = this.templateList.getTemplate(name);
+		if (template == null) {
+			Chat.send(context, builder -> builder.append("Invalid template type"));
+			return Command.SINGLE_SUCCESS;
+		}
 
 		ServerType serverType = ServerType.fromName(context.getArgument("type", String.class));
 		if (serverType == null) {
@@ -74,33 +76,21 @@ public class CommandCreate {
 		}
 
 		Chat.send(context, builder -> builder.append("Creating server " + (template != null ? "template " + template.getName() : name) + "..."));
-		if (template != null) {
-			String serverName = String.format("%s-%s-%s", template.getName(), serverType.name().toLowerCase(), version);
-			if (this.serverManager.getServer(serverName) != null) {
-				Chat.send(context, builder -> builder.append("Template aready exist"));
-				return Command.SINGLE_SUCCESS;
+		String serverName = String.format("%s-%s-%s", template.getName(), serverType.name().toLowerCase(), version);
+		if (this.serverManager.getServer(serverName) != null) {
+			Chat.send(context, builder -> builder.append("Template aready exist"));
+			return Command.SINGLE_SUCCESS;
+		}
+
+		this.serverManager.create(template, serverType, version).whenComplete((__, error) -> {
+			if (error != null) {
+				error.printStackTrace();
+				Chat.send(context, builder -> builder.append("Created failed! " + error.getMessage()));
+				return;
 			}
 
-			this.serverManager.create(template, serverType, version).whenComplete((__, error) -> {
-				if (error != null) {
-					error.printStackTrace();
-					Chat.send(context, builder -> builder.append("Created failed! " + error.getMessage()));
-					return;
-				}
-
-				Chat.send(context, builder -> builder.append("Created success"));
-			});
-		} else {
-			this.serverManager.create(name, serverType, version).whenComplete((__, error) -> {
-				if (error != null) {
-					error.printStackTrace();
-					Chat.send(context, builder -> builder.append("Created failed! " + error.getMessage()));
-					return;
-				}
-
-				Chat.send(context, builder -> builder.append("Created success"));
-			});
-		}
+			Chat.send(context, builder -> builder.append("Created success"));
+		});
 		return Command.SINGLE_SUCCESS;
 	}
 

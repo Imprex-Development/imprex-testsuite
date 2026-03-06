@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import com.velocitypowered.api.proxy.Player;
@@ -38,6 +39,11 @@ public class VelocityApi implements TestsuiteApi {
 	public TestsuitePlayer getPlayer(String name) {
 		return VelocityPlayer.get(name);
 	}
+	
+	@Override
+	public TestsuitePlayer getPlayer(UUID uuid) {
+		return VelocityPlayer.get(uuid);
+	}
 
 	@Override
 	public List<TestsuitePlayer> getPlayers() {
@@ -63,8 +69,13 @@ public class VelocityApi implements TestsuiteApi {
 	@Override
 	public void registerServerList(TestsuiteServer server) {
 		String name = server.getName().toLowerCase();
-		String ip = server.getAddress();
-		int port = server.getPort();
+		String ip = server.getAddress().orElse(null);
+		Integer port = server.getPort().orElse(null);
+		
+		// no allocation
+		if (ip == null || port == null) {
+			return;
+		}
 
 		Optional<RegisteredServer> serverOptional = this.proxy.getServer(name);
 		if (serverOptional.isPresent()) {

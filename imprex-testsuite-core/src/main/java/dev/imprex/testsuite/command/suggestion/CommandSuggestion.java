@@ -26,8 +26,8 @@ public class CommandSuggestion {
 		return new SuggestionBuilder<>(() -> this.versionCache.getVersionList(type).stream());
 	}
 
-	public SuggestionBuilder<ServerTemplate, ServerTemplate> template() {
-		return new SuggestionBuilder<>(() -> this.templateList.getTemplates().stream());
+	public SuggestionBuilder<String, ServerTemplate> template() {
+		return new SuggestionBuilder<>(() -> this.templateList.getTemplates().stream().map(template -> template.getName()));
 	}
 
 	public ServerSuggestionBuilder server() {

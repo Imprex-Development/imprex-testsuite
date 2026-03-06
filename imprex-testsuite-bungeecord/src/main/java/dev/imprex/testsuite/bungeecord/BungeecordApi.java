@@ -4,6 +4,7 @@ import java.net.InetSocketAddress;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import dev.imprex.testsuite.api.TestsuiteApi;
@@ -33,6 +34,11 @@ public class BungeecordApi implements TestsuiteApi {
 	}
 
 	@Override
+	public TestsuitePlayer getPlayer(UUID uuid) {
+		return BungeecordPlayer.get(uuid);
+	}
+
+	@Override
 	public List<TestsuitePlayer> getPlayers() {
 		return this.proxy.getPlayers().stream()
 				.map(BungeecordPlayer::get)
@@ -56,8 +62,13 @@ public class BungeecordApi implements TestsuiteApi {
 	@Override
 	public void registerServerList(TestsuiteServer server) {
 		String name = server.getName().toLowerCase();
-		String ip = server.getAddress();
-		int port = server.getPort();
+		String ip = server.getAddress().orElse(null);
+		Integer port = server.getPort().orElse(null);
+		
+		// no allocation
+		if (ip == null || port == null) {
+			return;
+		}
 
 		ServerInfo serverInfoOptional = this.proxy.getServers().get(name);
 		if (serverInfoOptional != null) {

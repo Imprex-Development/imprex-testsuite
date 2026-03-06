@@ -21,10 +21,6 @@
 			<url>https://repo.papermc.io/repository/maven-public/</url>
 		</repository>
 		<repository>
-			<id>mattmalec-repo</id>
-			<url>https://repo.mattmalec.com/repository/releases</url>
-		</repository>
-		<repository>
 			<id>minecraft-libraries</id>
 			<url>https://libraries.minecraft.net</url>
 		</repository>
@@ -32,6 +28,10 @@
 			<id>sonatype-oss-snapshots1</id>
 			<url>https://s01.oss.sonatype.org/content/repositories/snapshots/</url>
 		</repository>
+        <repository>
+            <id>bungeecord-repo</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </repository>
 	</repositories>
 
 	<dependencyManagement>
@@ -40,14 +40,14 @@
 			<dependency>
 				<groupId>net.md-5</groupId>
 				<artifactId>bungeecord-api</artifactId>
-				<version>1.19-R0.1-SNAPSHOT</version>
+				<version>1.21-R0.4-SNAPSHOT</version>
 				<type>javadoc</type>
 				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>net.md-5</groupId>
 				<artifactId>bungeecord-api</artifactId>
-				<version>1.19-R0.1-SNAPSHOT</version>
+				<version>1.21-R0.4-SNAPSHOT</version>
 				<type>jar</type>
 				<scope>provided</scope>
 			</dependency>
@@ -66,9 +66,9 @@
 			
 			<!-- Pterodactyl -->
 			<dependency>
-				<groupId>com.mattmalec</groupId>
-				<artifactId>Pterodactyl4J</artifactId>
-				<version>2.BETA_140</version>
+				<groupId>de.ngloader</groupId>
+				<artifactId>pelican4j</artifactId>
+				<version>0.0.1</version>
 				<scope>provided</scope>
 			</dependency>
 			<dependency>

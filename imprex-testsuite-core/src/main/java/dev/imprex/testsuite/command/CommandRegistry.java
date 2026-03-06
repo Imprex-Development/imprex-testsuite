@@ -21,11 +21,12 @@ import dev.imprex.testsuite.command.command.CommandOverride;
 import dev.imprex.testsuite.command.command.CommandReconnect;
 import dev.imprex.testsuite.command.command.CommandReinstall;
 import dev.imprex.testsuite.command.command.CommandRestart;
+import dev.imprex.testsuite.command.command.CommandSend;
 import dev.imprex.testsuite.command.command.CommandSetup;
 import dev.imprex.testsuite.command.command.CommandStart;
 import dev.imprex.testsuite.command.command.CommandStartSetup;
 import dev.imprex.testsuite.command.command.CommandStop;
-import dev.imprex.testsuite.command.command.CommandTyl;
+import dev.imprex.testsuite.command.command.CommandCurrent;
 
 public class CommandRegistry {
 
@@ -47,7 +48,10 @@ public class CommandRegistry {
 				.alias("rc")
 				.asRoot());
 		this.register(command(new CommandReinstall(plugin).create()));
-		this.register(command(new CommandRestart(plugin).create()));
+		this.register(command(new CommandRestart(plugin).create())
+				.asRoot());
+		this.register(command(new CommandSend(plugin).create())
+				.asRoot());
 		this.register(command(new CommandSetup(plugin).create()));
 		this.register(command(new CommandStart(plugin).create())
 				.asRoot());
@@ -56,7 +60,7 @@ public class CommandRegistry {
 				.asRoot());
 		this.register(command(new CommandStop(plugin).create())
 				.asRoot());
-		this.register(command(new CommandTyl(plugin).create())
+		this.register(command(new CommandCurrent(plugin).create())
 				.asRoot());
 	}
 

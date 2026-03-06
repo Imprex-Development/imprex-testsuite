@@ -46,6 +46,7 @@ public class LocalCommand {
 
 	public void execute(String input) {
 		try {
+			System.out.println("execute: " + input);
 			this.dispatcher.execute(input, DUMMY_PLAYER);
 		} catch (CommandSyntaxException e) {
 			// Ignore syntax exceptions

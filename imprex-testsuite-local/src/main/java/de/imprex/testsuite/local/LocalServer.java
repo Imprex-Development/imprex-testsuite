@@ -2,6 +2,7 @@ package de.imprex.testsuite.local;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import dev.imprex.testsuite.api.TestsuitePlayer;
 import dev.imprex.testsuite.api.TestsuiteServer;
@@ -24,13 +25,13 @@ public record LocalServer(String identifier, String name, String address, int po
 	}
 
 	@Override
-	public String getAddress() {
-		return this.address;
+	public Optional<String> getAddress() {
+		return Optional.of(this.address);
 	}
 
 	@Override
-	public int getPort() {
-		return this.port;
+	public Optional<Integer> getPort() {
+		return Optional.of(this.port);
 	}
 
 	@Override

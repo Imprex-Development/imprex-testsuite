@@ -12,13 +12,13 @@ import dev.imprex.testsuite.api.TestsuiteSender;
 import dev.imprex.testsuite.api.TestsuiteServer;
 import dev.imprex.testsuite.util.Chat;
 
-public class CommandTyl {
+public class CommandCurrent {
 
-	public CommandTyl(TestsuitePlugin plugin) {
+	public CommandCurrent(TestsuitePlugin plugin) {
 	}
 
 	public LiteralArgumentBuilder<TestsuiteSender> create() {
-		return literal("tyl")
+		return literal("current")
 				.executes(this::printCurrentServer);
 	}
 
